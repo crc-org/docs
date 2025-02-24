@@ -153,6 +153,11 @@ Configure a remote server to run an {ocp} cluster provided by {prod}.
 This procedure assumes the use of a {rhel}, {fed}, or {centos} server.
 Run every command in this procedure on the remote server.
 
+[NOTE]
+====
+These instructions will only work for system-mode networking.
+====
+
 [WARNING]
 ====
 **Perform this procedure only on a local network.**
@@ -164,6 +169,7 @@ Exposing an insecure server on the internet has many security implications.
 For more information, see xref:installing.adoc[Installing {prod}] and xref:using.adoc#setting-up[Setting up {prod}].
 * {prod} is configured to use the {openshift} preset on the remote server.
 For more information, see xref:configuring.adoc#changing-the-selected-preset[Changing the selected preset].
+* {prod} is configured to use system-mode networking.
 * Your user account has `sudo` permissions on the remote server.
 
 .Procedure
