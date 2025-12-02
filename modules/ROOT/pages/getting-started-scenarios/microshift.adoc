@@ -46,5 +46,5 @@ Wait for application pod to become ready and access application via route:
 [subs="+quotes,attributes"]
 ----
 $ oc get routes
-$ curl http://hello-crc-default.apps.crc.testing
+$ curl http://hello-crc-default.apps-crc.testing
 ----
