@@ -104,11 +104,6 @@ Configure a remote server to run an {ocp} cluster provided by {prod}.
 This procedure assumes the use of a {rhel}, {fed}, or {centos} server.
 Run every command in this procedure on the remote server.
 
-[NOTE]
-====
-These instructions will only work for system-mode networking.
-====
-
 [WARNING]
 ====
 **Perform this procedure only on a local network.**
@@ -120,7 +115,6 @@ Exposing an insecure server on the internet has many security implications.
 For more information, see xref:installing.adoc[Installing {prod}] and xref:using.adoc#setting-up[Setting up {prod}].
 * {prod} is configured to use the {openshift} preset on the remote server.
 For more information, see xref:configuring.adoc#changing-the-selected-preset[Changing the selected preset].
-* {prod} is configured to use system-mode networking.
 * Your user account has `sudo` permissions on the remote server.
 
 .Procedure
@@ -133,12 +127,6 @@ $ {bin} start
 +
 Ensure that the cluster remains running during this procedure.
 
-. Install the [package]`haproxy` package and other utilities:
-+
-----
-$ sudo dnf install haproxy /usr/sbin/semanage
-----
-
 . Modify the firewall to allow communication with the cluster:
 +
 ----
@@ -149,54 +137,35 @@ $ sudo firewall-cmd --add-service=kube-apiserver --permanent
 $ sudo firewall-cmd --reload
 ----
 
-. For SELinux, allow HAProxy to listen on TCP port 6443 to serve `kube-apiserver` on this port:
+. {prod} exposes ports 80 and 443 on all interfaces, but the API server (6443) only listens on localhost.
+Install [package]`socat` and create a systemd service to forward the API port to the LAN:
 +
 ----
-$ sudo semanage port -a -t http_port_t -p tcp 6443
+$ sudo dnf install -y socat
 ----
-
-. Create a backup of the default [application]`haproxy` configuration:
 +
-----
-$ sudo cp /etc/haproxy/haproxy.cfg{,.bak}
-----
-
-. Configure [application]`haproxy` for use with the cluster:
+Replace `_REMOTE_IP_` with the IP address of the server (for example, `192.168.1.6`):
 +
-[subs="+quotes,attributes"]
+[subs="+quotes"]
 ----
-$ export CRC_IP=$({bin} ip)
-$ sudo tee /etc/haproxy/haproxy.cfg &>/dev/null <<EOF
-global
-    log /dev/log local0
+$ cat <<'EOF' | sudo tee /etc/systemd/system/crc-api-forward.service
+[Unit]
+Description=Forward CRC API port (6443) to LAN
+After=network.target
 
-defaults
-    balance roundrobin
-    log global
-    maxconn 100
-    mode tcp
-    timeout connect 5s
-    timeout client 500s
-    timeout server 500s
+[Service]
+ExecStart=/usr/bin/socat TCP-LISTEN:6443,bind=_REMOTE_IP_,fork,reuseaddr TCP:127.0.0.1:6443
+Restart=always
+RestartSec=5s
 
-listen apps
-    bind 0.0.0.0:80
-    server crcvm $CRC_IP:80 check
-
-listen apps_ssl
-    bind 0.0.0.0:443
-    server crcvm $CRC_IP:443 check
-
-listen api
-    bind 0.0.0.0:6443
-    server crcvm $CRC_IP:6443 check
+[Install]
+WantedBy=multi-user.target
 EOF
 ----
-
-. Start the [application]`haproxy` service:
 +
 ----
-$ sudo systemctl start haproxy
+$ sudo systemctl daemon-reload
+$ sudo systemctl enable --now crc-api-forward
 ----
 
 == Connecting to a remote {prod} instance
