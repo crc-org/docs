@@ -55,7 +55,7 @@ To assign more resources to the {prod} instance, see xref:configuring.adoc[Confi
 
 {mac}::
 
-* {mac} 13 Ventura or later.
+* {mac} 15 Sequoia or later.
 * {prod} does not work on earlier {mac} versions.
 
 Linux::
