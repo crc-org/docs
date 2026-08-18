@@ -49,7 +49,7 @@ To assign more resources to the {prod} instance, see xref:configuring.adoc[Confi
 
 {msw}::
 
-* Fully updated {msw} 10 or {msw} 11.
+* Fully updated {msw} 11.
 * {prod} does not work on earlier {msw} versions.
 * {prod} does not work on {msw} Home Edition.
 
